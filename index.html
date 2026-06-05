@@ -1,0 +1,586 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Küçük Kahraman - Günlük Takip Paneli</title>
+    <link href="https://fonts.googleapis.com/css2?family=Comfortaa:wght@500;700&family=Quicksand:wght@500;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #eef2f7;
+            --purple: #bc84ee;
+            --orange: #ff823a;
+            --green: #2ecc71;
+            --blue: #4cc9f0;
+            --gray: #94a3b8;
+        }
+
+        body {
+            font-family: 'Quicksand', sans-serif;
+            background-color: var(--bg-color);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            overflow-x: hidden;
+        }
+
+        /* TATLI LOGİN EKRANI (AÇILIŞ KATMANI) */
+        #loginScreen {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.5s ease-in-out;
+        }
+
+        .login-box {
+            background: white;
+            padding: 40px;
+            border-radius: 30px;
+            box-shadow: 0 15px 30px rgba(0,0,0,0.1);
+            text-align: center;
+            max-width: 400px;
+            width: 90%;
+            transform: scale(1);
+            transition: transform 0.3s ease;
+        }
+
+        .login-box:hover {
+            transform: scale(1.02);
+        }
+
+        .login-avatar {
+            font-size: 70px;
+            animation: bounce 2s infinite;
+            margin-bottom: 10px;
+        }
+
+        .login-box h2 {
+            font-family: 'Comfortaa', cursive;
+            color: #2c3e50;
+            margin-bottom: 20px;
+            font-size: 26px;
+        }
+
+        .login-input {
+            width: 100%;
+            padding: 15px;
+            border: 3px solid #e2e8f0;
+            border-radius: 15px;
+            font-family: 'Quicksand', sans-serif;
+            font-size: 18px;
+            font-weight: bold;
+            text-align: center;
+            outline: none;
+            transition: border-color 0.3s;
+            margin-bottom: 20px;
+        }
+
+        .login-input:focus {
+            border-color: var(--purple);
+        }
+
+        .login-btn {
+            font-family: 'Comfortaa', cursive;
+            background: linear-gradient(135deg, var(--purple), var(--blue));
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            font-size: 18px;
+            font-weight: bold;
+            border-radius: 50px;
+            cursor: pointer;
+            box-shadow: 0 5px 15px rgba(188, 132, 238, 0.4);
+            transition: all 0.2s;
+            width: 100%;
+        }
+
+        .login-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(188, 132, 238, 0.6);
+        }
+
+        /* ANA UYGULAMA İÇERİĞİ */
+        #appContent {
+            opacity: 0;
+            transform: translateY(20px);
+            transition: all 0.5s ease-in-out;
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        h1 {
+            font-family: 'Comfortaa', cursive;
+            color: #1e293b;
+            margin-bottom: 5px;
+            text-align: center;
+        }
+
+        /* SKORBORD & İLERLEME ÇUBUĞU */
+        .scoreboard {
+            background: white;
+            padding: 20px;
+            border-radius: 20px;
+            width: 100%;
+            max-width: 800px;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.05);
+            margin-bottom: 25px;
+            text-align: center;
+        }
+
+        .score-text {
+            font-family: 'Comfortaa', cursive;
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .progress-container {
+            background: #e2e8f0;
+            border-radius: 50px;
+            height: 25px;
+            width: 100%;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .progress-bar {
+            background: linear-gradient(90deg, var(--orange), var(--purple));
+            height: 100%;
+            width: 0%;
+            transition: width 0.5s ease, background 0.3s ease;
+        }
+
+        .target-badge {
+            margin-top: 10px;
+            font-size: 14px;
+            color: #64748b;
+            font-weight: bold;
+        }
+
+        /* GÖREV ALANLARI */
+        .grid-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 20px;
+            width: 100%;
+            max-width: 800px;
+        }
+
+        .section-title {
+            grid-column: 1 / -1;
+            font-family: 'Comfortaa', cursive;
+            font-size: 20px;
+            color: #475569;
+            margin-top: 15px;
+            margin-bottom: 5px;
+            border-left: 5px solid var(--purple);
+            padding-left: 10px;
+        }
+
+        /* 3D KART DÖNME EFEKTİ */
+        .card {
+            height: 180px;
+            perspective: 1000px;
+            cursor: pointer;
+        }
+
+        .card-inner {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            text-align: center;
+            transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+            transform-style: preserve-3d;
+        }
+
+        .card.completed .card-inner {
+            transform: rotateY(180deg);
+        }
+
+        .card-front, .card-back {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            -webkit-backface-visibility: hidden;
+            backface-visibility: hidden;
+            border-radius: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 15px;
+            box-shadow: 0 8px 15px rgba(0,0,0,0.05);
+            box-sizing: border-box;
+        }
+
+        .card-front {
+            background: white;
+            border: 3px solid #e2e8f0;
+        }
+
+        .card-back {
+            background: var(--green);
+            color: white;
+            transform: rotateY(180deg);
+        }
+
+        .card-emoji {
+            font-size: 40px;
+            margin-bottom: 10px;
+        }
+
+        .card-title {
+            font-size: 16px;
+            font-weight: 700;
+            color: #334155;
+            margin: 0;
+        }
+
+        .badge {
+            background: #f1f5f9;
+            color: var(--orange);
+            padding: 3px 10px;
+            border-radius: 50px;
+            font-size: 12px;
+            font-weight: bold;
+            margin-top: 8px;
+        }
+
+        /* ZAMAN KİLİDİ STİLİ */
+        .card.locked {
+            cursor: not-allowed;
+            opacity: 0.4;
+        }
+        .card.locked .card-front {
+            background: #cbd5e1;
+            border-color: #94a3b8;
+        }
+        .lock-notice {
+            font-size: 11px;
+            color: #ef4444;
+            font-weight: bold;
+            margin-top: 5px;
+        }
+
+        .reset-btn {
+            margin-top: 30px;
+            font-family: 'Comfortaa', cursive;
+            background: #ef4444;
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 50px;
+            font-size: 16px;
+            cursor: pointer;
+            box-shadow: 0 5px 15px rgba(239, 68, 68, 0.3);
+            transition: all 0.2s;
+        }
+        .reset-btn:hover { transform: scale(1.05); }
+
+        /* ANIMASYONLAR */
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-15px); }
+        }
+    </style>
+</head>
+<body>
+
+    <div id="loginScreen">
+        <div class="login-box">
+            <div class="login-avatar">👶🚀</div>
+            <h2>Süper Kahraman Paneli</h2>
+            <input type="text" id="childNameInput" class="login-input" placeholder="İsmini Yaz Kahraman!" maxlength="15">
+            <button class="login-btn" onclick="loginToApp()">Dünyama Gir ✨</button>
+        </div>
+    </div>
+
+    <div id="appContent">
+        <h1>👶 <span id="welcomeName">Kahraman</span> Takvimi</h1>
+        
+        <div class="scoreboard">
+            <div class="score-text">Bugünkü Puan: <span id="totalScore">0</span> ⭐</div>
+            <div class="progress-container">
+                <div class="progress-bar" id="progressBar"></div>
+            </div>
+            <div class="target-badge" id="targetStatus">Hedef: 50 Puan (Barajı Aşmaya Çalış!)</div>
+        </div>
+
+        <div class="grid-container">
+            <div class="section-title">☀️ Sabah Görevleri (06:00 - 10:00)</div>
+            
+            <div class="card" data-points="5" data-time="morning" onclick="toggleCard(this)">
+                <div class="card-inner">
+                    <div class="card-front">
+                        <div class="card-emoji">👁️</div>
+                        <p class="card-title">Uyanmak</p>
+                        <div class="badge">+5 Puan</div>
+                    </div>
+                    <div class="card-back">
+                        <div class="card-emoji">🎉</div>
+                        <p class="card-title">Harika!</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card" data-points="10" data-time="morning" onclick="toggleCard(this)">
+                <div class="card-inner">
+                    <div class="card-front">
+                        <div class="card-emoji">🛏️</div>
+                        <p class="card-title">Yatak Yapmak</p>
+                        <div class="badge">+10 Puan</div>
+                    </div>
+                    <div class="card-back">
+                        <div class="card-emoji">🌟</div>
+                        <p class="card-title">Düzenli Bebek!</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card" data-points="15" data-time="morning" onclick="toggleCard(this)">
+                <div class="card-inner">
+                    <div class="card-front">
+                        <div class="card-emoji">💊</div>
+                        <p class="card-title">Vitamin/İlaç</p>
+                        <div class="badge">+15 Puan</div>
+                    </div>
+                    <div class="card-back">
+                        <div class="card-emoji">💪</div>
+                        <p class="card-title">Şifa Olsun!</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="section-title">🧸 Gün Boyu Görevleri</div>
+
+            <div class="card" data-points="5" onclick="toggleCard(this)">
+                <div class="card-inner">
+                    <div class="card-front">
+                        <div class="card-emoji">🪥</div>
+                        <p class="card-title">Diş Fırçalamak</p>
+                        <div class="badge">+5 Puan</div>
+                    </div>
+                    <div class="card-back">
+                        <div class="card-emoji">💎</div>
+                        <p class="card-title">Bembeyaz!</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card" data-points="5" onclick="toggleCard(this)">
+                <div class="card-inner">
+                    <div class="card-front">
+                        <div class="card-emoji">💧</div>
+                        <p class="card-title">Su İçmek</p>
+                        <div class="badge">+5 Puan</div>
+                    </div>
+                    <div class="card-back">
+                        <div class="card-emoji">🥤</div>
+                        <p class="card-title">Lık Lık Bitti!</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card" data-points="5" onclick="toggleCard(this)">
+                <div class="card-inner">
+                    <div class="card-front">
+                        <div class="card-emoji">🍌</div>
+                        <p class="card-title">Atıştırmalık</p>
+                        <div class="badge">+5 Puan</div>
+                    </div>
+                    <div class="card-back">
+                        <div class="card-emoji">😋</div>
+                        <p class="card-title">Afiyet Olsun!</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card" data-points="10" onclick="toggleCard(this)">
+                <div class="card-inner">
+                    <div class="card-front">
+                        <div class="card-emoji">🚽</div>
+                        <p class="card-title">Çiş / Kaka</p>
+                        <div class="badge">+10 Puan</div>
+                    </div>
+                    <div class="card-back">
+                        <div class="card-emoji">👏</div>
+                        <p class="card-title">Başardın!</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card" data-points="15" onclick="toggleCard(this)">
+                <div class="card-inner">
+                    <div class="card-front">
+                        <div class="card-emoji">😴</div>
+                        <p class="card-title">Öğlen Uykusu</p>
+                        <div class="badge">+15 Puan</div>
+                    </div>
+                    <div class="card-back">
+                        <div class="card-emoji">🌙</div>
+                        <p class="card-title">Tatlı Rüyalar</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <button class="reset-btn" onclick="resetDay()">Günü Sıfırla (Yeni Gün) 🔄</button>
+    </div>
+
+    <script>
+        let currentScore = 0;
+        const TARGET_SCORE = 50;
+
+        window.onload = function() {
+            checkTimeLocks();
+            // Eğer daha önce isim kaydedildiyse login ekranını atla
+            const savedName = localStorage.getItem('bebekTakvimiHeroName');
+            if (savedName) {
+                document.getElementById('loginScreen').style.display = 'none';
+                document.getElementById('appContent').style.opacity = '1';
+                document.getElementById('appContent').style.transform = 'translateY(0)';
+                document.getElementById('welcomeName').innerText = savedName;
+                loadProgress();
+            }
+        };
+
+        // GİRİŞ YAPMA FONKSİYONU
+        function loginToApp() {
+            const nameInput = document.getElementById('childNameInput').value.trim();
+            const finalName = nameInput || "Süper Kahraman";
+            
+            localStorage.setItem('bebekTakvimiHeroName', finalName);
+            document.getElementById('welcomeName').innerText = finalName;
+
+            // Giriş ekranını uçur
+            const loginScr = document.getElementById('loginScreen');
+            loginScr.style.opacity = '0';
+            setTimeout(() => {
+                loginScr.style.display = 'none';
+                const mainContent = document.getElementById('appContent');
+                mainContent.style.opacity = '1';
+                mainContent.style.transform = 'translateY(0)';
+                
+                // Sesli Hoş Geldin Selamlaması
+                speak(`Hoş geldin ${finalName}! Bugün harika bir gün. Görevlerini tamamlamaya hazır mısın?`);
+                loadProgress();
+            }, 500);
+        }
+
+        // SES MOTORU
+        function speak(text) {
+            if ('speechSynthesis' in window) {
+                const utterance = new SpeechSynthesisUtterance(text);
+                utterance.lang = 'tr-TR';
+                utterance.rate = 1;
+                window.speechSynthesis.speak(utterance);
+            }
+        }
+
+        function checkTimeLocks() {
+            const currentHour = new Date().getHours();
+            const morningCards = document.querySelectorAll('.card[data-time="morning"]');
+            
+            if (currentHour < 6 || currentHour >= 10) {
+                morningCards.forEach(card => {
+                    if (!card.classList.contains('completed')) {
+                        card.classList.add('locked');
+                        card.removeAttribute('onclick');
+                        const front = card.querySelector('.card-front');
+                        if(!front.querySelector('.lock-notice')) {
+                            const notice = document.createElement('div');
+                            notice.className = 'lock-notice';
+                            notice.innerText = '🔒 Zamanı Geçti (06-10)';
+                            front.appendChild(notice);
+                        }
+                    }
+                });
+            }
+        }
+
+        function toggleCard(card) {
+            if (card.classList.contains('locked')) return;
+            const points = parseInt(card.getAttribute('data-points'));
+            
+            if (card.classList.contains('completed')) {
+                card.classList.remove('completed');
+                currentScore -= points;
+            } else {
+                card.classList.add('completed');
+                currentScore += points;
+                // Kart her tamamlandığında küçük bir motive edici ses çıkarabilir
+                speak("Başardın!");
+            }
+
+            updateScoreboard();
+            saveProgress();
+        }
+
+        function updateScoreboard() {
+            document.getElementById('totalScore').innerText = currentScore;
+            let progressPercent = (currentScore / TARGET_SCORE) * 100;
+            if(progressPercent > 100) progressPercent = 100;
+            
+            const bar = document.getElementById('progressBar');
+            bar.style.width = progressPercent + '%';
+
+            const status = document.getElementById('targetStatus');
+            if (currentScore >= TARGET_SCORE) {
+                bar.style.background = '#2ecc71';
+                status.innerHTML = '🎉 <strong>SÜPER KAHRAMAN!</strong> Bugünlük hedefe ulaşıldı!';
+                status.style.color = '#2ecc71';
+            } else {
+                bar.style.background = 'linear-gradient(90deg, var(--orange), var(--purple))';
+                status.innerText = `Hedef: 50 Puan (Kalan: ${TARGET_SCORE - currentScore} Puan)`;
+                status.style.color = '#64748b';
+            }
+        }
+
+        function resetDay() {
+            if (confirm('Tüm kartları sıfırlamak ve yeni güne başlamak istiyor musunuz?')) {
+                localStorage.removeItem('bebekTakvimiScore');
+                localStorage.removeItem('bebekTakvimiCards');
+                // İsmi silmiyoruz ki her gün yeniden login olmak zorunda kalmasın
+                location.reload();
+            }
+        }
+
+        function saveProgress() {
+            localStorage.setItem('bebekTakvimiScore', currentScore);
+            const cardStates = [];
+            document.querySelectorAll('.card').forEach((card, index) => {
+                cardStates.push({ index: index, completed: card.classList.contains('completed') });
+            });
+            localStorage.setItem('bebekTakvimiCards', JSON.stringify(cardStates));
+        }
+
+        function loadProgress() {
+            const savedScore = localStorage.getItem('bebekTakvimiScore');
+            const savedCards = JSON.parse(localStorage.getItem('bebekTakvimiCards'));
+
+            if (savedScore) {
+                currentScore = parseInt(savedScore);
+                updateScoreboard();
+            }
+            if (savedCards) {
+                const cards = document.querySelectorAll('.card');
+                savedCards.forEach(state => {
+                    if (cards[state.index] && state.completed) {
+                        cards[state.index].classList.add('completed');
+                    }
+                });
+                updateScoreboard();
+            }
+        }
+    </script>
+</body>
+</html>
