@@ -194,4 +194,269 @@
                 <option value="morning">☀️ Sabah (06-10)</option>
                 <option value="noon">🌈 Öğlen</option>
                 <option value="school">🎒 Okul</option>
-                <option value="evening">🌙 Akşam & Y
+                <option value="evening">🌙 Akşam & Yatak</option>
+            </select>
+            <button class="mini-btn" style="background: var(--green); color: white; display: inline-block;" onclick="addNewTask()">Ekle ➕</button>
+        </div>
+
+        <div id="tasksContainer">
+            </div>
+
+        <div class="action-bar">
+            <button class="action-btn" style="background: var(--pink);" onclick="resetDay()">Günü Sıfırla 🔄</button>
+        </div>
+    </div>
+
+    <audio id="bgMusic" loop src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3"></audio>
+
+    <script>
+        let currentScore = 0;
+        const TARGET_SCORE = 60;
+        let isMusicPlaying = false;
+        let editMode = false;
+
+        // VARSAYILAN BAŞLANGIÇ GÖREVLERİ
+        const defaultTasks = [
+            { id: 1, cat: 'morning', emoji: '👁️', title: 'Uyanmak', pts: 5, timeLock: true },
+            { id: 2, cat: 'morning', emoji: '🛏️', title: 'Yatak Yapmak', pts: 10, timeLock: true },
+            { id: 3, cat: 'morning', emoji: '💊', title: 'Vitamin / İlaç', pts: 15, timeLock: true },
+            { id: 4, cat: 'noon', emoji: '🪥', title: 'Diş Fırçalamak', pts: 5 },
+            { id: 5, cat: 'noon', emoji: '💧', title: 'Su İçmek', pts: 5 },
+            { id: 6, cat: 'noon', emoji: '😴', title: 'Öğlen Uykusu', pts: 15 },
+            { id: 7, cat: 'school', emoji: '🎒', title: 'Çantayı Hazırla', pts: 10 },
+            { id: 8, cat: 'school', emoji: '📝', title: 'Ödevleri Yapmak', pts: 15 },
+            { id: 9, cat: 'school', emoji: '👕', title: 'Formayı Giymek', pts: 10 },
+            { id: 10, cat: 'evening', emoji: '🍌', title: 'Atıştırmalık', pts: 5 },
+            { id: 11, cat: 'evening', emoji: '🚽', title: 'Tuvalet Kontrolü', pts: 10 },
+            { id: 12, cat: 'evening', emoji: '📖', title: 'Masal & Uyku', pts: 10 }
+        ];
+
+        let userTasks = [];
+
+        window.onload = function() {
+            const savedName = localStorage.getItem('heroName');
+            if(savedName) {
+                document.getElementById('loginScreen').style.display = 'none';
+                document.getElementById('appContent').style.display = 'block';
+                document.getElementById('welcomeName').innerText = savedName;
+                initApp();
+            }
+        };
+
+        function login() {
+            const name = document.getElementById('childNameInput').value.trim() || "Küçük Şef";
+            localStorage.setItem('heroName', name);
+            location.reload();
+        }
+
+        function initApp() {
+            // Görevleri yükle (Kayıtlı yoksa varsayılanları çek)
+            const savedTasks = localStorage.getItem('customTasks');
+            userTasks = savedTasks ? JSON.parse(savedTasks) : defaultTasks;
+            
+            renderTasks();
+            loadProgress();
+            checkWeeklyHistory();
+        }
+
+        // KATEGORİLERİ VE KARTLARI EKRANA BASMA MOTORU
+        function renderTasks() {
+            const container = document.getElementById('tasksContainer');
+            container.innerHTML = '';
+
+            const categories = {
+                morning: { title: '☀️ Sabah Görevleri (06:00 - 10:00)', color: 'var(--orange)' },
+                noon: { title: '🌈 Öğlen Rutini', color: 'var(--blue)' },
+                school: { title: '🎒 Okul Zamanı Görevleri', color: 'var(--purple)' },
+                evening: { title: '🌙 Akşam & Yatak Hazırlığı', color: 'var(--pink)' }
+            };
+
+            const currentHour = new Date().getHours();
+
+            for (let key in categories) {
+                const catTasks = userTasks.filter(t => t.cat === key);
+                if(catTasks.length === 0) continue;
+
+                let catHtml = `
+                    <div class="category-container">
+                        <div class="category-title" style="border-left: 5px solid ${categories[key].color}">${categories[key].title}</div>
+                        <div class="grid">
+                `;
+
+                catTasks.forEach(task => {
+                    // Sabah saati kilidi (06:00-10:00 dışındaysa kilitle)
+                    let isLocked = false;
+                    if(task.timeLock && (currentHour < 6 || currentHour >= 10)) {
+                        isLocked = true;
+                    }
+
+                    catHtml += `
+                        <div class="card ${isLocked ? 'locked' : ''}" id="task-${task.id}" data-pts="${task.pts}" onclick="clickCard(this, ${isLocked})">
+                            <button class="delete-card-btn" onclick="deleteTask(event, ${task.id})">X</button>
+                            <div class="card-inner">
+                                <div class="card-front">
+                                    <div class="card-emoji">${task.emoji}</div>
+                                    <p class="card-title">${task.title}</p>
+                                    <div class="points-badge">+${task.pts} Puan</div>
+                                    ${isLocked ? '<div class="lock-text">🔒 Zamanı Kaçırdın!</div>' : ''}
+                                </div>
+                                <div class="card-back">
+                                    <div class="card-emoji">⭐</div>
+                                    <p class="card-title">BAŞARDIN!</p>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                });
+
+                catHtml += `</div></div>`;
+                container.innerHTML += catHtml;
+            }
+        }
+
+        // KART TIKLAMA VE PUAN HESAPLAMA
+        function clickCard(element, isLocked) {
+            if(isLocked || editMode) return;
+            
+            const pts = parseInt(element.getAttribute('data-pts'));
+            if(element.classList.contains('completed')) {
+                element.classList.remove('completed');
+                currentScore -= pts;
+            } else {
+                element.classList.add('completed');
+                currentScore += pts;
+            }
+            
+            updateScoreboard();
+            saveProgress();
+        }
+
+        function updateScoreboard() {
+            document.getElementById('totalScore').innerText = currentScore;
+            let percent = (currentScore / TARGET_SCORE) * 100;
+            if(percent > 100) percent = 100;
+            document.getElementById('progressBar').style.width = percent + '%';
+
+            // Baraj Geçildi mi? Haftalık gün dairesini yak
+            const currentDay = new Date().getDay(); // 0: Pazar, 1: Pzt...
+            const targetCircle = document.getElementById(`day-${currentDay}`);
+            
+            if(currentScore >= TARGET_SCORE) {
+                if(targetCircle) targetCircle.classList.add('done');
+                saveWeeklyHistory(currentDay, true);
+            } else {
+                if(targetCircle) targetCircle.classList.remove('done');
+                saveWeeklyHistory(currentDay, false);
+            }
+        }
+
+        // MÜZİK AÇ / KAPAT
+        function toggleMusic() {
+            const music = document.getElementById('bgMusic');
+            if(isMusicPlaying) {
+                music.pause();
+                document.getElementById('musicStatus').innerText = "Kapat";
+            } else {
+                music.play().catch(() => alert("Müziği başlatmak için ekrana bir kez dokunun!"));
+                document.getElementById('musicStatus').innerText = "Açık 🎵";
+            }
+            isMusicPlaying = !isMusicPlaying;
+        }
+
+        // DÜZENLEME (EDİT) MODUNU AÇMA
+        function toggleEditMode() {
+            editMode = !editMode;
+            document.getElementById('creatorPanel').style.display = editMode ? 'block' : 'none';
+            document.querySelectorAll('.delete-card-btn').forEach(btn => {
+                btn.style.display = editMode ? 'block' : 'none';
+            });
+        }
+
+        // UYGULAMA İÇİNDEN YENİ GÖREV EKLEME
+        function addNewTask() {
+            const emoji = document.getElementById('newTaskEmoji').value.trim() || "⭐";
+            const title = document.getElementById('newTaskTitle').value.trim();
+            const pts = parseInt(document.getElementById('newTaskPoints').value) || 10;
+            const cat = document.getElementById('newTaskCat').value;
+
+            if(!title) { alert("Lütfen görev adı yazın!"); return; }
+
+            const newTask = {
+                id: Date.now(),
+                cat: cat,
+                emoji: emoji,
+                title: title,
+                pts: pts,
+                timeLock: cat === 'morning' // Sabah ise kilidi otomatik ekle
+            };
+
+            userTasks.push(newTask);
+            localStorage.setItem('customTasks', JSON.stringify(userTasks));
+            
+            // Temizle ve yenile
+            document.getElementById('newTaskTitle').value = '';
+            renderTasks();
+            toggleEditMode(); // Modu kapat
+        }
+
+        // GÖREV SİLME
+        function deleteTask(event, id) {
+            event.stopPropagation(); // Karta tıklama tetiklenmesin
+            userTasks = userTasks.filter(t => t.id !== id);
+            localStorage.setItem('customTasks', JSON.stringify(userTasks));
+            renderTasks();
+            toggleEditMode();
+        }
+
+        // VERİ DEPOLAMA VE GEÇMİŞ KONTROLÜ
+        function saveProgress() {
+            localStorage.setItem('score', currentScore);
+            const completedIds = [];
+            document.querySelectorAll('.card.completed').forEach(c => {
+                completedIds.push(c.id);
+            });
+            localStorage.setItem('completedCards', JSON.stringify(completedIds));
+        }
+
+        function loadProgress() {
+            const savedScore = localStorage.getItem('score');
+            if(savedScore) {
+                currentScore = parseInt(savedScore);
+                updateScoreboard();
+            }
+            const completedIds = JSON.parse(localStorage.getItem('completedCards'));
+            if(completedIds) {
+                completedIds.forEach(id => {
+                    const card = document.getElementById(id);
+                    if(card) card.classList.add('completed');
+                });
+                updateScoreboard();
+            }
+        }
+
+        function saveWeeklyHistory(day, isDone) {
+            let history = JSON.parse(localStorage.getItem('weeklyHistory')) || {};
+            history[day] = isDone;
+            localStorage.setItem('weeklyHistory', JSON.stringify(history));
+        }
+
+        function checkWeeklyHistory() {
+            let history = JSON.parse(localStorage.getItem('weeklyHistory')) || {};
+            for(let day in history) {
+                if(history[day]) {
+                    const circle = document.getElementById(`day-${day}`);
+                    if(circle) circle.classList.add('done');
+                }
+            }
+        }
+
+        function resetDay() {
+            if(confirm('Bugünkü tüm kartları sıfırlamak istiyor musunuz?')) {
+                localStorage.removeItem('score');
+                localStorage.removeItem('completedCards');
+                location.reload();
+            }
+        }
+    </script>
+</body>
+</html>
