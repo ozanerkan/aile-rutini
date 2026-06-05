@@ -23,11 +23,13 @@
             margin: 0; padding: 20px;
             display: flex; flex-direction: column; align-items: center;
             overflow-x: hidden; user-select: none;
+            min-height: 100vh;
+            justify-content: flex-start;
         }
 
-        /* TATLI ARKA PLAN ANİMASYONLARI (Uçan Balonlar ve Bulutlar) */
+        /* TATLI ARKA PLAN ELEMENTLERİ */
         .decor {
-            position: fixed; font-size: 30px; opacity: 0.15; z-index: -1;
+            position: fixed; font-size: 35px; opacity: 0.15; z-index: -1;
             animation: floatAnim 8s infinite ease-in-out;
         }
         @keyframes floatAnim {
@@ -35,32 +37,43 @@
             50% { transform: translateY(-20px) rotate(10deg); }
         }
 
-        /* GİRİŞ EKRANI */
+        /* %100 HİZALANMIŞ GİRİŞ EKRANI */
         #loginScreen {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: linear-gradient(135deg, #ffe5ec, #cdb4db);
-            z-index: 9999; display: flex; flex-direction: column; align-items: center; justify-content: center;
+            z-index: 9999; 
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            box-sizing: border-box;
         }
         .login-box {
-            background: white; padding: 40px; border-radius: 30px;
-            box-shadow: 0 15px 30px rgba(0,0,0,0.1); text-align: center; max-width: 400px; width: 90%;
+            background: white; padding: 40px 30px; border-radius: 30px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.15); text-align: center; 
+            max-width: 420px; width: 85%;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            box-sizing: border-box;
         }
-        .login-avatar { font-size: 80px; animation: bounce 2s infinite; margin-bottom: 10px; }
+        .login-avatar { font-size: 80px; animation: bounce 2s infinite; margin-bottom: 15px; }
+        .login-box h2 { font-family: 'Comfortaa', cursive; color: var(--dark); margin: 0 0 20px 0; font-size: 26px; }
         .login-input {
             width: 100%; padding: 15px; border: 3px solid #e2e8f0; border-radius: 15px;
-            font-size: 18px; font-weight: bold; text-align: center; outline: none; margin-bottom: 20px;
+            font-family: 'Quicksand', sans-serif; font-size: 18px; font-weight: bold; 
+            text-align: center; outline: none; margin-bottom: 20px; box-sizing: border-box;
+            transition: border-color 0.3s;
         }
+        .login-input:focus { border-color: var(--purple); }
         .login-btn {
             font-family: 'Comfortaa', cursive; background: linear-gradient(135deg, var(--purple), var(--blue));
-            color: white; border: none; padding: 15px; font-size: 18px; font-weight: bold; border-radius: 50px; cursor: pointer; width: 100%;
+            color: white; border: none; padding: 15px; font-size: 18px; font-weight: bold; 
+            border-radius: 50px; cursor: pointer; width: 100%; box-sizing: border-box;
+            box-shadow: 0 5px 15px rgba(188, 132, 238, 0.4); transition: all 0.2s;
         }
+        .login-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(188, 132, 238, 0.6); }
 
         /* ANA İÇERİK */
         #appContent { display: none; width: 100%; max-width: 900px; }
 
         h1 { font-family: 'Comfortaa', cursive; color: var(--dark); text-align: center; margin-bottom: 5px; }
 
-        /* MÜZİK VE KONTROL PANELİ */
         .control-panel {
             display: flex; justify-content: space-between; width: 100%; margin-bottom: 15px; gap: 10px;
         }
@@ -70,7 +83,6 @@
         }
         .mini-btn:hover { background: #f8fafc; }
 
-        /* ÜST PANEL (SKOR & PROGRESS) */
         .header-card {
             background: white; padding: 20px; border-radius: 25px;
             box-shadow: 0 10px 20px rgba(0,0,0,0.03); margin-bottom: 25px; text-align: center;
@@ -79,20 +91,16 @@
         .progress-container { background: #e2e8f0; border-radius: 50px; height: 25px; width: 100%; overflow: hidden; }
         .progress-bar { background: linear-gradient(90deg, var(--orange), var(--purple)); height: 100%; width: 0%; transition: width 0.4s; }
 
-        /* HAFTALIK TAKVİM / PROGRESS GÖRÜNÜMÜ */
         .weekly-tracker {
             display: flex; justify-content: space-around; margin-top: 15px; background: #f8fafc; padding: 10px; border-radius: 15px;
         }
-        .day-bubble {
-            display: flex; flex-direction: column; align-items: center; font-size: 12px; font-weight: bold; color: #64748b;
-        }
+        .day-bubble { display: flex; flex-direction: column; align-items: center; font-size: 12px; font-weight: bold; color: #64748b; }
         .day-circle {
             width: 30px; height: 30px; border-radius: 50%; background: #e2e8f0; margin-top: 5px;
             display: flex; align-items: center; justify-content: center; color: white; font-size: 14px;
         }
         .day-circle.done { background: var(--green); }
 
-        /* GÖREV GRUPLARI VE GRID */
         .category-container { margin-bottom: 30px; }
         .category-title {
             font-family: 'Comfortaa', cursive; font-size: 22px; color: var(--dark);
@@ -100,7 +108,6 @@
         }
         .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 15px; }
 
-        /* 3D INTERAKTIF KART */
         .card { height: 160px; perspective: 1000px; cursor: pointer; position: relative; }
         .card-inner {
             position: relative; width: 100%; height: 100%; text-align: center;
@@ -118,21 +125,18 @@
         .card-back .card-title { color: white; }
         .points-badge { background: #f1f5f9; color: var(--orange); padding: 2px 8px; border-radius: 50px; font-size: 11px; font-weight: bold; margin-top: 5px; }
         
-        /* Silme Butonu (Düzenleme Modunda Görünür) */
         .delete-card-btn {
             position: absolute; top: -5px; right: -5px; background: var(--pink); color: white; border: none;
             width: 25px; height: 25px; border-radius: 50%; cursor: pointer; display: none; z-index: 10; font-weight: bold;
         }
 
-        /* ZAMAN KİLİDİ */
         .card.locked { cursor: not-allowed; opacity: 0.3; }
         .card.locked .card-front { background: #cbd5e1; border-color: #94a3b8; }
         .lock-text { font-size: 10px; color: #ef4444; font-weight: bold; margin-top: 2px; }
 
-        /* YENİ GÖREV EKLEME MODALI PANELİ */
         .creator-panel {
             background: white; padding: 20px; border-radius: 20px; margin-bottom: 20px;
-            display: none; box-shadow: 0 10px 20px rgba(0,0,0,0.05); width: 100%;
+            display: none; box-shadow: 0 10px 20px rgba(0,0,0,0.05); width: 100%; box-sizing: border-box;
         }
         .creator-panel input, .creator-panel select {
             padding: 10px; margin: 5px; border-radius: 10px; border: 2px solid #e2e8f0; font-family: inherit; font-size: 14px;
@@ -157,7 +161,7 @@
         <div class="login-box">
             <div class="login-avatar">👶👑</div>
             <h2>Kahraman Dünyası</h2>
-            <input type="text" id="childNameInput" class="login-input" placeholder="Adını Yaz Küçük Şef!" maxlength="12">
+            <input type="text" id="childNameInput" class="login-input" placeholder="Adını Yaz Kahraman!" maxlength="12">
             <button class="login-btn" onclick="login()">Macera Başlasın! ✨</button>
         </div>
     </div>
@@ -199,8 +203,7 @@
             <button class="mini-btn" style="background: var(--green); color: white; display: inline-block;" onclick="addNewTask()">Ekle ➕</button>
         </div>
 
-        <div id="tasksContainer">
-            </div>
+        <div id="tasksContainer"></div>
 
         <div class="action-bar">
             <button class="action-btn" style="background: var(--pink);" onclick="resetDay()">Günü Sıfırla 🔄</button>
@@ -215,7 +218,6 @@
         let isMusicPlaying = false;
         let editMode = false;
 
-        // VARSAYILAN BAŞLANGIÇ GÖREVLERİ
         const defaultTasks = [
             { id: 1, cat: 'morning', emoji: '👁️', title: 'Uyanmak', pts: 5, timeLock: true },
             { id: 2, cat: 'morning', emoji: '🛏️', title: 'Yatak Yapmak', pts: 10, timeLock: true },
@@ -250,16 +252,13 @@
         }
 
         function initApp() {
-            // Görevleri yükle (Kayıtlı yoksa varsayılanları çek)
             const savedTasks = localStorage.getItem('customTasks');
             userTasks = savedTasks ? JSON.parse(savedTasks) : defaultTasks;
-            
             renderTasks();
             loadProgress();
             checkWeeklyHistory();
         }
 
-        // KATEGORİLERİ VE KARTLARI EKRANA BASMA MOTORU
         function renderTasks() {
             const container = document.getElementById('tasksContainer');
             container.innerHTML = '';
@@ -284,7 +283,6 @@
                 `;
 
                 catTasks.forEach(task => {
-                    // Sabah saati kilidi (06:00-10:00 dışındaysa kilitle)
                     let isLocked = false;
                     if(task.timeLock && (currentHour < 6 || currentHour >= 10)) {
                         isLocked = true;
@@ -314,7 +312,6 @@
             }
         }
 
-        // KART TIKLAMA VE PUAN HESAPLAMA
         function clickCard(element, isLocked) {
             if(isLocked || editMode) return;
             
@@ -337,8 +334,7 @@
             if(percent > 100) percent = 100;
             document.getElementById('progressBar').style.width = percent + '%';
 
-            // Baraj Geçildi mi? Haftalık gün dairesini yak
-            const currentDay = new Date().getDay(); // 0: Pazar, 1: Pzt...
+            const currentDay = new Date().getDay();
             const targetCircle = document.getElementById(`day-${currentDay}`);
             
             if(currentScore >= TARGET_SCORE) {
@@ -350,20 +346,18 @@
             }
         }
 
-        // MÜZİK AÇ / KAPAT
         function toggleMusic() {
             const music = document.getElementById('bgMusic');
             if(isMusicPlaying) {
                 music.pause();
                 document.getElementById('musicStatus').innerText = "Kapat";
             } else {
-                music.play().catch(() => alert("Müziği başlatmak için ekrana bir kez dokunun!"));
+                music.play().catch(() => alert("Müziği başlatmak için ekrana dokunun!"));
                 document.getElementById('musicStatus').innerText = "Açık 🎵";
             }
             isMusicPlaying = !isMusicPlaying;
         }
 
-        // DÜZENLEME (EDİT) MODUNU AÇMA
         function toggleEditMode() {
             editMode = !editMode;
             document.getElementById('creatorPanel').style.display = editMode ? 'block' : 'none';
@@ -372,7 +366,6 @@
             });
         }
 
-        // UYGULAMA İÇİNDEN YENİ GÖREV EKLEME
         function addNewTask() {
             const emoji = document.getElementById('newTaskEmoji').value.trim() || "⭐";
             const title = document.getElementById('newTaskTitle').value.trim();
@@ -387,28 +380,25 @@
                 emoji: emoji,
                 title: title,
                 pts: pts,
-                timeLock: cat === 'morning' // Sabah ise kilidi otomatik ekle
+                timeLock: cat === 'morning'
             };
 
             userTasks.push(newTask);
             localStorage.setItem('customTasks', JSON.stringify(userTasks));
             
-            // Temizle ve yenile
             document.getElementById('newTaskTitle').value = '';
             renderTasks();
-            toggleEditMode(); // Modu kapat
+            toggleEditMode();
         }
 
-        // GÖREV SİLME
         function deleteTask(event, id) {
-            event.stopPropagation(); // Karta tıklama tetiklenmesin
+            event.stopPropagation();
             userTasks = userTasks.filter(t => t.id !== id);
             localStorage.setItem('customTasks', JSON.stringify(userTasks));
             renderTasks();
             toggleEditMode();
         }
 
-        // VERİ DEPOLAMA VE GEÇMİŞ KONTROLÜ
         function saveProgress() {
             localStorage.setItem('score', currentScore);
             const completedIds = [];
